@@ -2,5 +2,5 @@
     <string name="app_name">FISH</string>
     <string name="button_scan_wifi">Scan WiFi</string>
     <string name="image_erkennung_von_alexa_erkennung">Erkennung von Alexa-Erkennung</string>
-    <string name="warnung_bei_alexa">Warning</string>
+    <string name="warten_auf_scan">Please Wait\nWhile Scanning</string>
 </resources>

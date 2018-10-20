@@ -46,9 +46,10 @@
         android:layout_height="wrap_content"
         android:layout_alignParentBottom="true"
         android:layout_centerHorizontal="true"
-        android:layout_marginBottom="113dp"
-        android:text="@string/warnung_bei_alexa"
-        android:textAppearance="@style/TextAppearance.AppCompat.Display1"
+        android:layout_marginBottom="91dp"
+        android:gravity="center"
+        android:text="@string/warten_auf_scan"
+        android:textAppearance="@style/TextAppearance.AppCompat.Menu"
         android:visibility="invisible" />
 
 </RelativeLayout>
