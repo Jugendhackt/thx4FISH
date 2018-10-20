@@ -38,7 +38,7 @@
         android:layout_marginRight="85dp"
         android:contentDescription="@string/image_erkennung_von_alexa_erkennung"
         android:visibility="visible"
-        app:srcCompat="@drawable/ic_wanzepicred" />
+        app:srcCompat="@drawable/ic_wanzepicgreen" />
 
     <TextView
         android:id="@+id/textView"

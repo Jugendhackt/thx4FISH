@@ -11,6 +11,6 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.menu);
 
         //ImageView imageview = findViewById(R.id.imageView);       //Zum Überschreiben wenn
-        //imageview.setImageResource(R.drawable.ic_wanzepicgreen);  //ein Echo gefunden ist
+        //imageview.setImageResource(R.drawable.ic_wanzepicred);  //ein Echo gefunden ist
     }
 }
