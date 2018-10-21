@@ -51,6 +51,7 @@ public class MainActivity extends AppCompatActivity {
                     @Override
                     public void run() {
                         ImageView imageView = findViewById(R.id.imageView);
+                        imageView.setVisibility(View.INVISIBLE);
                         imageView.setImageResource(R.drawable.ic_wanzepicgreen);
                     }
                 });
@@ -91,6 +92,7 @@ public class MainActivity extends AppCompatActivity {
                                             public void run() {
                                                 ImageView imageView = findViewById(R.id.imageView);
                                                 imageView.setImageResource(R.drawable.ic_wanzepicred);
+                                                imageView.setVisibility(View.VISIBLE);
                                             }
                                         });
                                     }
@@ -102,6 +104,13 @@ public class MainActivity extends AppCompatActivity {
                             }
                         }
                         toggleTextView();
+                        runOnUiThread(new Runnable() {
+                            @Override
+                            public void run() {
+                                ImageView imageView = findViewById(R.id.imageView);
+                                imageView.setVisibility(View.VISIBLE);
+                            }
+                        });
                     }
                 });
 
