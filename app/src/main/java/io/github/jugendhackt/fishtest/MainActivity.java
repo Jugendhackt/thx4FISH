@@ -1,6 +1,9 @@
 package io.github.jugendhackt.fishtest;
 
 
+import android.content.Context;
+import android.net.DhcpInfo;
+import android.net.wifi.WifiManager;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.widget.ImageView;
@@ -9,17 +12,23 @@ import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import com.stealthcopter.networktools.ARPInfo;
+import com.stealthcopter.networktools.PortScan;
 import com.stealthcopter.networktools.SubnetDevices;
 import com.stealthcopter.networktools.subnet.Device;
 import okhttp3.HttpUrl;
 import okhttp3.OkHttpClient;
 import okhttp3.Request;
+import org.apache.commons.net.util.SubnetUtils;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import java.io.IOException;
 import java.lang.reflect.Array;
+import java.math.BigInteger;
+import java.net.InetAddress;
+import java.net.UnknownHostException;
 import java.util.ArrayList;
+import java.util.regex.Matcher;
 
 public class MainActivity extends AppCompatActivity {
     protected ArrayList<Device> devices = new ArrayList<>();
@@ -35,42 +44,71 @@ public class MainActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                TextView textView = findViewById(R.id.textView);
-                textView.setVisibility(TextView.VISIBLE);
+                devices = new ArrayList<>();
+                devicesWithMAC = new ArrayList<>();
+                toggleTextView();
+                runOnUiThread(new Runnable() {
+                    @Override
+                    public void run() {
+                        ImageView imageView = findViewById(R.id.imageView);
+                        imageView.setImageResource(R.drawable.ic_wanzepicgreen);
+                    }
+                });
                 Log.i("FISH", "Started");
                 SubnetDevices.fromLocalAddress().findDevices(new SubnetDevices.OnSubnetDeviceFound() {
                     @Override
                     public void onDeviceFound(Device device) {
-                        devices.add(device);
+                        Log.i("FISH", device.toString());
                     }
 
                     @Override
                     public void onFinished(ArrayList<Device> devicesFound) {
-                        TextView textView = findViewById(R.id.textView);
-                        textView.setVisibility(TextView.INVISIBLE);
-                        Log.i("FISH", "Done");
-                        for(Device device : devices){
-                            DeviceWithMAC deviceWithMAC = new DeviceWithMAC(device, ARPInfo.getMACFromIPAddress(device.ip));
-                            devicesWithMAC.add(deviceWithMAC);
-                        }
-                        for (DeviceWithMAC deviceWithMAC : devicesWithMAC){
-                            if (deviceWithMAC.getMAC() != null) {
-                                try {
-                                    Log.i("FISH", doPostMAC(URL, deviceWithMAC.getMAC()).getString("value"));
-                                } catch (JSONException e) {
-                                    e.printStackTrace();
-                                } catch (IOException e) {
-                                    e.printStackTrace();
-                                }
+                        WifiManager wifiManager = (WifiManager)getApplicationContext().getSystemService(Context.WIFI_SERVICE);
+                        DhcpInfo dhcpInfo = wifiManager.getDhcpInfo();
+                        Integer ip = dhcpInfo.ipAddress;
+                        Integer mask = dhcpInfo.netmask;
+                        String ipStr = String.format("%d.%d.%d.%d", ip & 0xff, ip >> 8 & 0xff, ip >> 16 & 0xff, ip >> 24 & 0xff);
+                        String maskStr = String.format("%d.%d.%d.%d", mask & 0xff, mask >> 8 & 0xff, mask >> 16 & 0xff, mask >> 24 & 0xff);
+                        SubnetUtils subnetUtils = new SubnetUtils(ipStr, maskStr);
+                        String[] ips = subnetUtils.getInfo().getAllAddresses();
+                        ArrayList<IPAndMAC> ipAndMACS = new ArrayList<>();
+                        for (int i = 0; i < ips.length; i++) {
+                            final String ipAddr = ips[i];
+                            String mac = ARPInfo.getMACFromIPAddress(ipAddr);
+                            if (mac != null){
+                                IPAndMAC ipAndMAC = new IPAndMAC(ipAddr, mac);
+                                ipAndMACS.add(ipAndMAC);
                             }
                         }
+                        for (IPAndMAC ipAndMAC : ipAndMACS){
+                            try {
+                                String response = doPostMAC(URL, ipAndMAC.getMAC()).getString("value");
+                                if (!response.equals("unknown")){
+                                    Log.i("FISH", response);
+                                    if (response.toLowerCase().contains("amazon")){
+                                        runOnUiThread(new Runnable() {
+                                            @Override
+                                            public void run() {
+                                                ImageView imageView = findViewById(R.id.imageView);
+                                                imageView.setImageResource(R.drawable.ic_wanzepicred);
+                                            }
+                                        });
+                                    }
+                                }
+                            } catch (JSONException e) {
+                                e.printStackTrace();
+                            } catch (IOException e) {
+                                e.printStackTrace();
+                            }
+                        }
+                        toggleTextView();
                     }
                 });
+
+
+
             }
         });
-
-        //ImageView imageview = findViewById(R.id.imageView);       //Zum Überschreiben wenn
-        //imageview.setImageResource(R.drawable.ic_wanzepicred);    //ein Echo gefunden ist
     }
 
     protected JSONObject doPostMAC(String url, String mac) throws IOException, JSONException {
@@ -83,8 +121,19 @@ public class MainActivity extends AppCompatActivity {
 
         JSONObject response = new JSONObject(client.newCall(request).execute().body().string());
 
-        Log.i("FISH", response.toString());
+        //Log.i("FISH", response.toString());
 
         return response;
+    }
+
+    protected void toggleTextView(){
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                TextView textView = findViewById(R.id.textView);
+
+                textView.setVisibility((textView.getVisibility() == View.VISIBLE)? View.INVISIBLE : View.VISIBLE);
+            }
+        });
     }
 }

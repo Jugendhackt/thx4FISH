@@ -30,4 +30,5 @@ dependencies {
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
     implementation 'com.github.stealthcopter:AndroidNetworkTools:0.4.3'
     implementation 'com.squareup.okhttp3:okhttp:3.11.0'
+    implementation 'commons-net:commons-net:3.6'
 }
